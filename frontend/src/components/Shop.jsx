@@ -8,13 +8,13 @@ const Shop = () => {
         <Layout>
             <div className='container'>
                 <nav aria-label="breadcrumb" className='py-4'>
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="#">Inicio</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Tienda</li>
+                    <ol className="breadcrumb">
+                        <li className="breadcrumb-item"><a href="#">Inicio</a></li>
+                        <li className="breadcrumb-item active" aria-current="page">Tienda</li>
                     </ol>
                 </nav>
                 <div className='row'>
-                    <div className='col-md-4'>
+                    <div className='col-md-3'>
                         <div className='card shadow border-0 mb-3'>
                             <div className='card-body p-4'>
                                 <h3 className='mb-3'>Categorias</h3>
