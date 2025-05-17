@@ -11,6 +11,10 @@ import { AdminRequireAuth } from './components/admin/AdminRequireAuth'
 import {default as ShowCategories} from './components/admin/category/Show'
 import {default as CreateCategory} from './components/admin/category/Create'
 import {default as EditCategory} from './components/admin/category/Edit'
+import {default as ShowBrands} from './components/admin/brand/Show'
+import {default as CreateBrand} from './components/admin/brand/Create'
+import {default as EditBrand} from './components/admin/brand/Edit'
+
 
 function App() {
 
@@ -18,19 +22,25 @@ function App() {
     <>
      <BrowserRouter>
      <Routes>
+
+       {/* Rutas para Visitantes */}
       <Route path='/' element={<Home/>}/>
       <Route path='/shop' element={<Shop/>}/>
       <Route path='/product' element={<Product/>}/>
       <Route path='/cart' element={<Cart/>}/>
       <Route path='/checkout' element={<Pago/>}/>
 
+      {/* Rutas para iniciar sesion como administrador */}
       <Route path='/admin/login' element={<Login/>}/>
 
+      {/* Ruta para el panel de control de administrador */}
       <Route path='/admin/dashboard' element={
         <AdminRequireAuth>
         <Dashboard/>
         </AdminRequireAuth>
       }/>
+
+      {/* Rutas para las categorias */}
       <Route path='/admin/categories' element={
         <AdminRequireAuth>
         <ShowCategories/>
@@ -46,6 +56,25 @@ function App() {
         <EditCategory/>
         </AdminRequireAuth>
       }/>
+
+      {/* Rutas para las marcas */}
+      <Route path='/admin/brands' element={
+        <AdminRequireAuth>
+        <ShowBrands/>
+        </AdminRequireAuth>
+      }/>
+      <Route path='/admin/brands/create' element={
+        <AdminRequireAuth>
+        <CreateBrand/>
+        </AdminRequireAuth>
+      }/>
+      <Route path='/admin/brands/edit/:id' element={
+        <AdminRequireAuth>
+        <EditBrand/>
+        </AdminRequireAuth>
+      }/>
+
+      
       </Routes>
      </BrowserRouter>
      <ToastContainer />
