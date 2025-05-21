@@ -94,7 +94,7 @@ const Show = () => {
                                             {
                                                 brands.map(brand => {
                                                     return (
-                                                        <tr>
+                                                        <tr key={`brand-${brand.id}`}>
                                                             <td>{brand.id}</td>
                                                             <td>{brand.name}</td>
                                                             <td>
