@@ -92,7 +92,8 @@ const Create = ({ placeholder }) => {
     const formData = new FormData();
     const file = e.target.files[0];
     formData.append("image", file);
-    setDisable(true);
+    setDisable(true)
+
     const res = await fetch(`${apiUrl}/temp-images`, {
       method: 'POST',
       headers: {
@@ -102,13 +103,15 @@ const Create = ({ placeholder }) => {
       body: formData
     }).then(res => res.json())
       .then(result => {
-        setGallery(prev => [...prev, result.image.id]);
-        setGalleryImages(prev => [...prev, `${apiUrl}/uploads/temp/${result.image.name}`]);
+        gallery.push(result.image.id);
+        setGallery(gallery);
+        galleryImages.push(result.image.image_url);
+        setGalleryImages(galleryImages);
         setDisable(false);
-        e.target.value = ""
+        e.target.value = "";
+
       })
   }
-
   const deleteImage = (image) => {
     const newGallery = galleryImages.filter(gallery => gallery != image);
     setGalleryImages(newGallery);
@@ -341,7 +344,7 @@ const Create = ({ placeholder }) => {
                       {
                         galleryImages && galleryImages.map((image, index) => {
                           return (
-                            <div className='col-md-3' key={`image-${index}`}>
+                            <div className='col-md-3' key={index}>
                               <div className='card shadow'>
                                 <img src={image} alt="" className='w-100' />
                                 <button className='btn btn-danger' onClick={() => deleteImage(image)}>Eliminar</button>

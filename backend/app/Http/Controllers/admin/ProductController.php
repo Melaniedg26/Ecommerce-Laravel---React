@@ -58,7 +58,7 @@ class ProductController extends Controller
         $product->save();
 
 
-        if ($request->gallery) {
+        if (!empty($request->gallery)) {
             foreach ($request->gallery as $key => $tempImageId) {
                 $tempImage = TempImage::find($tempImageId);
 
