@@ -341,7 +341,7 @@ const Edit = ({ placeholder }) => {
                     </div>
                     <div className='col-md-6'>
                       <div className='mb-3'>
-                        <label htmlFor="" className='form-label'>Precio con descuento</label>
+                        <label htmlFor="" className='form-label'>Precio aumentado</label>
                         <input
                           {
                           ...register('compare_price', {
