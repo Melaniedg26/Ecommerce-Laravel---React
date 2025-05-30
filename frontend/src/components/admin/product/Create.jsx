@@ -13,6 +13,8 @@ const Create = ({ placeholder }) => {
   const [brands, setBrands] = useState([]);
   const [gallery, setGallery] = useState([]);
   const [galleryImages, setGalleryImages] = useState([]);
+  const [sizes, setSizes] = useState([]);
+  const [sizesChecked, setSizesChecked] = useState([]);
 
   const editor = useRef(null);
   const [content, setContent] = useState('');
@@ -34,31 +36,39 @@ const Create = ({ placeholder }) => {
   } = useForm();
 
   const saveProduct = async (data) => {
-    const formData = { ...data, "description": content, "gallery": gallery }
+    const formData = { ...data, description: content, gallery: gallery };
     setDisable(true);
-    const res = await fetch(`${apiUrl}/products`, {
-      method: 'POST',
-      headers: {
-        'Content-type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${adminToken()}`
-      },
-      body: JSON.stringify(formData)
-    }).then(res => res.json(data))
-      .then(result => {
-        setDisable(false);
-        if (result.status == 200) {
-          toast.success(result.message);
-          navigate('/admin/products');
 
-        } else {
-          const formErrors = result.errors;
-          Object.keys(formErrors).forEach((field) => {
-            setError(field, { message: formErrors[field][0] });
-          })
-        }
-      })
-  }
+    try {
+      const res = await fetch(`${apiUrl}/products`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${adminToken()}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const result = await res.json();
+
+      setDisable(false);
+
+      if (result.status == 200) {
+        toast.success(result.message);
+        navigate('/admin/products');
+      } else {
+        const formErrors = result.errors;
+        Object.keys(formErrors).forEach((field) => {
+          setError(field, { message: formErrors[field][0] });
+        });
+      }
+    } catch (error) {
+      setDisable(false);
+      toast.error("Ocurrió un error al guardar el producto.");
+      console.error("saveProduct error:", error);
+    }
+  };
 
   const fetchCategories = async () => {
     const res = await fetch(`${apiUrl}/categories`, {
@@ -87,7 +97,19 @@ const Create = ({ placeholder }) => {
         setBrands(result.data);
       })
   }
-
+  const fetchSizes = async () => {
+    const res = await fetch(`${apiUrl}/sizes`, {
+      method: 'GET',
+      headers: {
+        'Content-type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${adminToken()}`
+      }
+    }).then(res => res.json())
+      .then(result => {
+        setSizes(result.data);
+      })
+  }
   const handleFile = async (e) => {
     const formData = new FormData();
     const file = e.target.files[0];
@@ -103,22 +125,40 @@ const Create = ({ placeholder }) => {
       body: formData
     }).then(res => res.json())
       .then(result => {
-        gallery.push(result.image.id);
-        setGallery(gallery);
-        galleryImages.push(result.image.image_url);
-        setGalleryImages(galleryImages);
+        setGallery(prev => [...prev, result.image.id]);
+        setGalleryImages(prev => [...prev, result.image.image_url]);
         setDisable(false);
         e.target.value = "";
 
       })
   }
-  const deleteImage = (image) => {
-    const newGallery = galleryImages.filter(gallery => gallery != image);
-    setGalleryImages(newGallery);
-  }
+  const deleteImage = async (imageUrl, imageId) => {
+    // Quita la URL del estado de imágenes
+    const newGalleryImages = galleryImages.filter(image => image !== imageUrl);
+    setGalleryImages(newGalleryImages);
+
+    // Quita el ID del arreglo gallery
+    const newGallery = gallery.filter(id => id !== imageId);
+    setGallery(newGallery);
+
+    // Elimina del backend también
+    try {
+      await fetch(`${apiUrl}/temp-images/${imageId}`, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${adminToken()}`
+        }
+      });
+    } catch (err) {
+      console.error("Error eliminando imagen temporal:", err);
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
     fetchBrands();
+    fetchSizes();
   }, [])
 
   return (
@@ -332,6 +372,33 @@ const Create = ({ placeholder }) => {
                       errors.is_featured && <p className='invalid-feedback'>{errors.is_featured?.message}</p>
                     }
                   </div>
+                  <h3 className='py-3 border-bottom mb-3'>Tallas</h3>
+                  <div className='mb-3'>
+                    {
+                      sizes && sizes.map(size => {
+                        return (
+                          <div className="form-check-inline ps-2" key={`psize${size.id}`}>
+                            <input
+                              {
+                              ...register("sizes")
+                              }
+                              checked={sizesChecked.includes(size.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSizesChecked([...sizesChecked, size.id])
+                                } else {
+                                  setSizesChecked(sizesChecked.filter(sid => size.id != sid))
+                                }
+                              }}
+                              className="form-check-input" type="checkbox" value={size.id} id={`size-${size.id}`} />
+                            <label className="form-check-label ps-2" htmlFor={`size-${size.id}`}>
+                              {size.name}
+                            </label>
+                          </div>
+                        )
+                      })
+                    }
+                  </div>
                   <h3 className='py-3 border-bottom mb-3'>Galeria</h3>
                   <div className='mb-3'>
                     <label htmlFor="" className='form-label'>Imagen</label>
@@ -347,8 +414,8 @@ const Create = ({ placeholder }) => {
                             <div className='col-md-3' key={index}>
                               <div className='card shadow'>
                                 <img src={image} alt="" className='w-100' />
-                                <button className='btn btn-danger' onClick={() => deleteImage(image)}>Eliminar</button>
                               </div>
+                              <button type='button' className='btn btn-danger mt-3 w-100' onClick={() => deleteImage(image, gallery[index])}>Eliminar</button>
                             </div>
                           )
                         })

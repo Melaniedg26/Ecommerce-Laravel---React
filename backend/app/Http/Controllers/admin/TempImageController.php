@@ -52,4 +52,28 @@ class TempImageController extends Controller
             'image' => $tempImage
         ], 200);
     }
+    public function destroy($id)
+    {
+        $tempImage = TempImage::find($id);
+        if ($tempImage) {
+            if (!empty($tempImage->image)) {
+                $sizes = ['large', 'small'];
+                foreach ($sizes as $size) {
+                    $path = public_path("uploads/products/{$size}/" . $tempImage->image);
+                    if (file_exists($path) && is_file($path)) {
+                        unlink($path);
+                    }
+                }
+            }
+            $tempImage->delete();
+            return response()->json([
+                'status' => 200,
+                'message' => 'Imagen eliminada correctamente.'
+            ]);
+        }
+        return response()->json([
+            'status' => 404,
+            'message' => 'Imagen no encontrada.'
+        ]);
+    }
 }

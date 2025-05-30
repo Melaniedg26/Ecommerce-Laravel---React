@@ -14,4 +14,12 @@ class Product extends Model
         }
         return asset('/uploads/products/small/'.$this->image);
     }
+
+    function product_images(){
+        return $this->hasMany(ProductImage::class);
+    }
+
+    function product_sizes(){
+        return $this->hasMany(ProductSizes::class);
+    }
 }
