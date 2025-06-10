@@ -1,9 +1,31 @@
-import React from 'react'
+import { useEffect, useState } from 'react'
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import Logo from '../../assets/images/logo.png';
 import { Link } from 'react-router-dom';
+import { apiUrl } from './http';
 const Header = () => {
+    const [categories, setCategories] = useState([]);
+
+    const fetchCategories = () => {
+        fetch(`${apiUrl}/get-categories`, {
+            method: 'GET',
+            headers: {
+                'Content-type': 'application/json',
+                'Accept': 'application/json',
+            }
+        }).then(res => res.json())
+            .then(result => {
+                if (result.status == 200) {
+                    setCategories(result.data)
+                } else {
+                    console.log("Algo salio mal");
+                }
+            })
+    }
+    useEffect(() => {
+        fetchCategories();
+    }, [])
     return (
         <header className='shadow'>
             <div className='bg-dark text-center py-3'>
@@ -20,9 +42,13 @@ const Header = () => {
                             className="ms-auto my-2 my-lg-0"
                             navbarScroll
                         >
-                            <Nav.Link href="#action1">Hombre</Nav.Link>
-                            <Nav.Link href="#action2">Mujer</Nav.Link>
-                            <Nav.Link href="#action3">Niños</Nav.Link>
+                            {
+                                categories && categories.map(category => {
+                                    return (
+                                        <Nav.Link key={`cat-${category.id}`} href={`/shop?category=${category.id}`}>{category.name}</Nav.Link>
+                                    )
+                                })
+                            }
                         </Nav>
                         <div className='nav-right d-flex'>
                             <a href="" className='ms-3'>

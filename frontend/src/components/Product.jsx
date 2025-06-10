@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Layout from './common/Layout';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { Thumbs, FreeMode, Navigation } from 'swiper/modules';
+import { Thumbs, FreeMode, Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/free-mode';
 import 'swiper/css/navigation';
@@ -11,15 +11,55 @@ import { Rating } from 'react-simple-star-rating';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 
-
-import ProductImgOne from '../assets/images/mens/five.jpg';
-import ProductImgTwo from '../assets/images/mens/six.jpg';
-import ProductImgThree from '../assets/images/mens/seven.jpg';
+import { apiUrl } from './common/http';
 
 
 const Product = () => {
     const [thumbsSwiper, setThumbsSwiper] = useState(null);
     const [rating, setRating] = useState(3);
+    const [product, setProduct] = useState([]);
+    const [productImages, setProductImages] = useState([]);
+    const [productSizes, setProductSizes] = useState([]);
+    const params = useParams();
+
+    const swiperRef = useRef(null);
+    const timeoutId = useRef(null);
+
+    const handleUserInteraction = () => {
+        const swiper = swiperRef.current;
+        if (!swiper || !swiper.autoplay) return;
+        swiper.autoplay.stop();
+        if (timeoutId.current) clearTimeout(timeoutId.current);
+        timeoutId.current = setTimeout(() => {
+            if (swiper.autoplay) swiper.autoplay.start();
+        }, 5000);
+    };
+
+    const fetchProduct = () => {
+
+        fetch(`${apiUrl}/get-product/${params.id}`, {
+            method: 'GET',
+            headers: {
+                'Content-type': 'application/json',
+                'Accept': 'application/json',
+            }
+        }).then(res => res.json())
+            .then(result => {
+                if (result.status == 200) {
+                    setProduct(result.data);
+                    setProductImages(result.data.product_images)
+                    setProductSizes(result.data.product_sizes)
+                } else {
+                    console.log("Algo salio mal");
+                }
+            })
+
+    }
+    useEffect(() => {
+        fetchProduct();
+    }, [])
+
+    if (!productImages.length) return null;
 
     return (
         <Layout>
@@ -30,7 +70,7 @@ const Product = () => {
                             <ol className="breadcrumb">
                                 <li className="breadcrumb-item"><Link to="/">Inicio</Link></li>
                                 <li className="breadcrumb-item" aria-current="page"><Link to="/shop">Tienda</Link></li>
-                                <li className="breadcrumb-item active" aria-current="page">Titulo del producto</li>
+                                <li className="breadcrumb-item active" aria-current="page">{product.title}</li>
                             </ol>
                         </nav>
                     </div>
@@ -40,94 +80,73 @@ const Product = () => {
                         <div className='row'>
                             <div className='col-2'>
                                 <Swiper
-                                    style={{
-                                        '--swiper-navigation-color': '#000',
-                                        '--swiper-pagination-color': '#000',
-                                    }}
                                     onSwiper={setThumbsSwiper}
                                     loop={true}
-                                    direction={`vertical`}
+                                    direction="vertical"
                                     spaceBetween={10}
                                     slidesPerView={6}
                                     freeMode={true}
                                     watchSlidesProgress={true}
-                                    modules={[FreeMode, Navigation, Thumbs]}
+                                    modules={[FreeMode, Navigation, Thumbs, Autoplay]}
+                                    autoplay={{
+                                        delay: 1000,
+                                        disableOnInteraction: false,
+                                    }}
                                     className="mySwiper mt-2"
+                                    onTouchEnd={handleUserInteraction}
+                                    onMouseLeave={handleUserInteraction}
+                                    onSlideChange={handleUserInteraction}
                                 >
-                                    <SwiperSlide>
-                                        <div className='content'>
+                                    {productImages.map(product_image => (
+                                        <SwiperSlide key={`thumb-${product_image.id}`}>
                                             <img
-                                                src={ProductImgOne}
+                                                src={product_image.image_url}
                                                 alt=""
                                                 height={100}
-                                                className='w-100' />
-                                        </div>
-                                    </SwiperSlide>
-                                    <SwiperSlide>
-                                        <div className='content'>
-                                            <img
-                                                src={ProductImgTwo}
-                                                alt=""
-                                                height={100}
-                                                className='w-100' />
-                                        </div>
-                                    </SwiperSlide>
-                                    <SwiperSlide>
-                                        <div className='content'>
-                                            <img
-                                                src={ProductImgThree}
-                                                alt=""
-                                                height={100}
-                                                className='w-100' />
-                                        </div>
-                                    </SwiperSlide>
-
+                                                className='w-100'
+                                            />
+                                        </SwiperSlide>
+                                    ))}
                                 </Swiper>
                             </div>
                             <div className='col-10'>
                                 <Swiper
                                     style={{
-                                        '--swiper-navigation-color': '#000',
-                                        '--swiper-pagination-color': '#000',
+                                        '--swiper-navigation-color': '#54e6e3',
+                                        '--swiper-pagination-color': '#54e6e3',
+                                    }}
+                                    onSwiper={(swiper) => {
+                                        swiperRef.current = swiper;
                                     }}
                                     loop={true}
-                                    spaceBetween={0}
+                                    spaceBetween={10}
                                     navigation={true}
-                                    thumbs={thumbsSwiper ? { swiper: thumbsSwiper } : undefined}
-                                    modules={[FreeMode, Navigation, Thumbs]}
+                                    thumbs={{ swiper: thumbsSwiper }}
+                                    modules={[FreeMode, Navigation, Thumbs, Autoplay]}
                                     className="mySwiper2"
+                                    autoplay={{
+                                        delay: 1000,
+                                        disableOnInteraction: false,
+                                    }}
+                                    onTouchEnd={handleUserInteraction}
+                                    onMouseLeave={handleUserInteraction}
+                                    onSlideChange={handleUserInteraction}
                                 >
-                                    <SwiperSlide >
-                                        <div className='content'>
+                                    {productImages.map(product_image => (
+                                        <SwiperSlide key={`image-${product_image.id}`}>
                                             <img
-                                                src={ProductImgOne}
+                                                src={product_image.image_url}
                                                 alt=""
-                                                className='w-100' />
-                                        </div>
-                                    </SwiperSlide>
-                                    <SwiperSlide >
-                                        <div className='content'>
-                                            <img
-                                                src={ProductImgTwo}
-                                                alt=""
-                                                className='w-100' />
-                                        </div>
-                                    </SwiperSlide>
-                                    <SwiperSlide >
-                                        <div className='content'>
-                                            <img
-                                                src={ProductImgThree}
-                                                alt=""
-                                                className='w-100' />
-                                        </div>
-                                    </SwiperSlide>
+                                                className='w-100'
+                                            />
+                                        </SwiperSlide>
+                                    ))}
                                 </Swiper>
                             </div>
                         </div>
-
                     </div>
                     <div className='col-md-7'>
-                        <h2>Titulo del producto</h2>
+                        <h2>{product.title}</h2>
                         <div className='d-flex'>
                             <Rating
                                 size={20}
@@ -137,11 +156,11 @@ const Product = () => {
                             <span className='pt-1 ps-2'> 10 reseñas</span>
                         </div>
                         <div className='price h3 py-3'>
-                            $300 <span className='text-decoration-line-through'>$280</span>
+                            ${product.price} <span className='text-decoration-line-through'>${product.compare_price}</span>
 
                         </div>
                         <div>
-                            Producto 100% original <br />
+                            {product.short_description} <br />
                             Pagas al entregar <br />
                             15 dias de devolucion o cambios
                         </div>
@@ -149,10 +168,13 @@ const Product = () => {
                         <div className='pt-3'>
                             <strong>Seleccionar talla</strong>
                             <div className='sizes pt-2'>
-                                <button className='btn btn-size'>C</button>
-                                <button className='btn btn-size ms-1'>M</button>
-                                <button className='btn btn-size ms-1'>G</button>
-                                <button className='btn btn-size ms-1'>XG</button>
+                                {
+                                    productSizes && productSizes.map(product_size => {
+                                        return (
+                                            <button key={`size-${product_size.size.id}`} className='btn btn-size me-2'>{product_size.size.name}</button>
+                                        )
+                                    })
+                                }
                             </div>
                         </div>
                         <div className='add-to-cart my-4'>
@@ -161,21 +183,21 @@ const Product = () => {
                         <hr />
                         <div>
                             <strong>SKU:</strong>
-                            AABB4561
+                            {product.sku}
                         </div>
                     </div>
                 </div>
                 <div className='row pb-5'>
                     <div className='col-md-12'>
                         <Tabs
-                            defaultActiveKey="profile"
+                            defaultActiveKey="description"
                             id="uncontrolled-tab-example"
                             className="mb-3"
                         >
-                            <Tab eventKey="home" title="Descripcion">
-                                Tab content for Descripcion
-                            </Tab>
-                            <Tab eventKey="profile" title="Reseñas (10)">
+                            <Tab eventKey="description" title="Descripcion">
+                                <div dangerouslySetInnerHTML={{ __html: product.description }}>
+                                </div>                            </Tab>
+                            <Tab eventKey="review" title="Reseñas (10)">
                                 Tab content for Reseñas
                             </Tab>
                         </Tabs>
