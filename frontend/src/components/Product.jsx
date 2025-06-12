@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useContext } from 'react'
 import Layout from './common/Layout';
 import { Link, useParams } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react'
@@ -12,6 +12,8 @@ import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 
 import { apiUrl } from './common/http';
+import { CartContext } from './context/Cart';
+import { toast } from 'react-toastify';
 
 
 const Product = () => {
@@ -20,7 +22,9 @@ const Product = () => {
     const [product, setProduct] = useState([]);
     const [productImages, setProductImages] = useState([]);
     const [productSizes, setProductSizes] = useState([]);
+    const [sizeSelected, setSizeSelected] = useState(null);
     const params = useParams();
+    const { addToCart } = useContext(CartContext);
 
     const swiperRef = useRef(null);
     const timeoutId = useRef(null);
@@ -53,6 +57,21 @@ const Product = () => {
                     console.log("Algo salio mal");
                 }
             })
+
+    }
+    const handleAddToCart = () => {
+        if (productSizes.length > 0) {
+            if (sizeSelected == null) {
+                toast.error("Favor de seleccionar una talla")
+            } else {
+                addToCart(product, sizeSelected)
+                toast.success("Se agrego un producto al carrito")
+
+            }
+        } else {
+            addToCart(product, null)
+            toast.success("Se agrego un producto al carrito")
+        }
 
     }
     useEffect(() => {
@@ -171,14 +190,19 @@ const Product = () => {
                                 {
                                     productSizes && productSizes.map(product_size => {
                                         return (
-                                            <button key={`size-${product_size.size.id}`} className='btn btn-size me-2'>{product_size.size.name}</button>
+                                            <button
+                                                onClick={() => setSizeSelected(product_size.size.name)}
+                                                key={`size-${product_size.size.id}`}
+                                                className={`btn btn-size me-2 ${sizeSelected == product_size.size.name ? 'active' : ''}`} > {product_size.size.name}</button>
                                         )
                                     })
                                 }
                             </div>
                         </div>
                         <div className='add-to-cart my-4'>
-                            <button className='btn btn-primary text-uppercase'>Añadir al carrito</button>
+                            <button
+                                onClick={() => handleAddToCart()}
+                                className='btn btn-primary text-uppercase'>Añadir al carrito</button>
                         </div>
                         <hr />
                         <div>
@@ -204,7 +228,7 @@ const Product = () => {
                     </div>
                 </div>
             </div>
-        </Layout>
+        </Layout >
     )
 }
 
