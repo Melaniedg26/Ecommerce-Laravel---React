@@ -23,6 +23,11 @@ import { default as EditBrand } from './components/admin/brand/Edit'
 import { default as ShowProducts } from './components/admin/product/Show'
 import { default as CreateProduct } from './components/admin/product/Create'
 import { default as EditProduct } from './components/admin/product/Edit'
+import Register from './components/Register'
+import { default as LoginUsers } from './components/Login'
+import Profile from './components/Profile'
+import { RequireAuth } from './components/RequireAuth'
+
 
 
 function App() {
@@ -38,6 +43,14 @@ function App() {
           <Route path='/product/:id' element={<Product />} />
           <Route path='/cart' element={<Cart />} />
           <Route path='/checkout' element={<Pago />} />
+          <Route path='/account/register' element={<Register />} />
+          <Route path='/account/login' element={<LoginUsers />} />
+
+          <Route path='/account' element={
+            <RequireAuth>
+              <Profile />
+            </RequireAuth>
+          } />
 
           {/* Rutas para iniciar sesion como administrador */}
           <Route path='/admin/login' element={<Login />} />

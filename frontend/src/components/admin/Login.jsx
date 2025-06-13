@@ -19,8 +19,6 @@ const Login = () => {
     const navigate = useNavigate();
 
     const onSubmit = async (data) => {
-        console.log(data);
-
         const res = await fetch(`${apiUrl}/admin/login`, {
             method: 'POST',
             headers: {
@@ -58,10 +56,10 @@ const Login = () => {
                                 <input
                                     {
                                     ...register('email', {
-                                        required: "The email field is required",
+                                        required: "El correo es requerido",
                                         pattern: {
                                             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                            message: "Invalid email address"
+                                            message: "Correo invalido"
                                         }
                                     })
                                     }
